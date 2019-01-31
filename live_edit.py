@@ -151,14 +151,14 @@ def audio_callback(in_data, frame_count, time_info, status):
 	return (data.tobytes(), pyaudio.paContinue)
 	
 #Keras
-print "Loading Keras..."
+print("Loading Keras...")
 import os
 os.environ['THEANORC'] = "./" + device + ".theanorc"
 os.environ['KERAS_BACKEND'] = "theano"
 import theano
-print "Theano Version: " + theano.__version__
+print("Theano Version: " + theano.__version__)
 import keras
-print "Keras Version: " + keras.__version__
+print("Keras Version: " + keras.__version__)
 from keras.models import Model, Sequential, load_model
 from keras.layers import Dense, Activation, Dropout, Flatten, Reshape
 from keras.layers.convolutional import Conv2D, Conv2DTranspose, ZeroPadding2D
@@ -174,19 +174,19 @@ from keras.utils import plot_model
 from keras import backend as K
 K.set_image_data_format('channels_first')
 
-print "Loading Encoder..."
+print("Loading Encoder...")
 model = load_model(dir_name + 'model.h5')
 enc = K.function([model.get_layer('encoder').input, K.learning_phase()],
 				 [model.layers[-1].output])
 enc_model = Model(inputs=model.input, outputs=model.get_layer('pre_encoder').output)
 
-print "Loading Statistics..."
+print("Loading Statistics...")
 means = np.load(dir_name + sub_dir_name + 'means.npy')
 evals = np.load(dir_name + sub_dir_name + 'evals.npy')
 evecs = np.load(dir_name + sub_dir_name + 'evecs.npy')
 stds = np.load(dir_name + sub_dir_name + 'stds.npy')
 
-print "Loading Songs..."
+print("Loading Songs...")
 y_samples = np.load('samples.npy')
 y_lengths = np.load('lengths.npy')
 
@@ -250,7 +250,7 @@ def update_mouse_move(mouse_pos):
 			apply_controls()
 
 def draw_controls():
-	for i in xrange(control_num):
+	for i in range(control_num):
 		x = controls_x + i * control_w + control_pad
 		y = controls_y + control_pad
 		w = control_w - control_pad*2
@@ -261,7 +261,7 @@ def draw_controls():
 		pygame.draw.rect(screen, (0,0,0), (x, y, w, h), 1)
 		
 def draw_sliders():
-	for i in xrange(slider_num):
+	for i in range(slider_num):
 		slider_color = slider_colors[i % len(slider_colors)]
 		x = sliders_x + i * slider_w
 		y = sliders_y
@@ -273,7 +273,7 @@ def draw_sliders():
 		
 		cx_1 = x + tick_pad
 		cx_2 = x + slider_w - tick_pad
-		for j in xrange(int(num_sigmas * 2 + 1)):
+		for j in range(int(num_sigmas * 2 + 1)):
 			ly = y + slider_h/2.0 + (j-num_sigmas)*slider_h/(num_sigmas*2.0)
 			ly = int(ly)
 			col = (0,0,0) if j - num_sigmas == 0 else slider_color
@@ -285,8 +285,8 @@ def draw_sliders():
 def notes_to_img(notes):
 	output = np.full((3, notes_h, notes_w), 64, dtype=np.uint8)
 
-	for i in xrange(notes_rows):
-		for j in xrange(notes_cols):
+	for i in range(notes_rows):
+		for j in range(notes_cols):
 			x = note_pad + j*(note_w + note_pad*2)
 			y = note_pad + i*(note_h + note_pad*2)
 			ix = i*notes_cols + j
@@ -342,7 +342,7 @@ while running:
 				needs_update = True
 				audio_reset = True
 			if event.key == pygame.K_o:
-				print "RandIx: " + str(rand_ix)
+				print("RandIx: " + str(rand_ix))
 				if is_ae:
 					example_song = y_samples[cur_len:cur_len + num_measures]
 					cur_notes = example_song * 255

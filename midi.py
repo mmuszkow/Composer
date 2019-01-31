@@ -20,10 +20,10 @@ def midi_to_samples(fname):
 				ticks_per_measure = new_tpm
 				has_time_sig = True
 	if flag_warning:
-		print "  ^^^^^^ WARNING ^^^^^^"
-		print "    " + fname
-		print "    Detected multiple distinct time signatures."
-		print "  ^^^^^^ WARNING ^^^^^^"
+		print("  ^^^^^^ WARNING ^^^^^^")
+		print("    " + fname)
+		print("    Detected multiple distinct time signatures.")
+		print("  ^^^^^^ WARNING ^^^^^^")
 		return []
 	
 	all_notes = {}
@@ -78,9 +78,9 @@ def samples_to_midi(samples, fname, ticks_per_sample, thresh=0.5):
 	abs_time = 0
 	last_time = 0
 	for sample in samples:
-		for y in xrange(sample.shape[0]):
+		for y in range(sample.shape[0]):
 			abs_time += ticks_per_sample
-			for x in xrange(sample.shape[1]):
+			for x in range(sample.shape[1]):
 				note = x + (128 - num_notes)/2
 				if sample[y,x] >= thresh and (y == 0 or sample[y-1,x] < thresh):
 					delta_time = abs_time - last_time

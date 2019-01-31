@@ -7,7 +7,7 @@ patterns = {}
 dirs = ["Music", "download", "rag", "pop", "misc"]
 all_samples = []
 all_lens = []
-print "Loading Songs..."
+print("Loading Songs...")
 for dir in dirs:
 	for root, subdirs, files in os.walk(dir):
 		for file in files:
@@ -17,7 +17,7 @@ for dir in dirs:
 			try:
 				samples = midi.midi_to_samples(path)
 			except:
-				print "ERROR ", path
+				print("ERROR ", path)
 				continue
 			if len(samples) < 8:
 				continue
@@ -27,9 +27,9 @@ for dir in dirs:
 			all_lens += lens
 	
 assert(sum(all_lens) == len(all_samples))
-print "Saving " + str(len(all_samples)) + " samples..."
+print("Saving " + str(len(all_samples)) + " samples...")
 all_samples = np.array(all_samples, dtype=np.uint8)
 all_lens = np.array(all_lens, dtype=np.uint32)
 np.save('samples.npy', all_samples)
 np.save('lengths.npy', all_lens)
-print "Done"
+print("Done")

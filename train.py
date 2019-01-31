@@ -50,15 +50,15 @@ def save_config():
 ###################################
 #  Load Keras
 ###################################
-print "Loading Keras..."
+print("Loading Keras...")
 import os, math
 os.environ['THEANORC'] = "./gpu.theanorc"
 os.environ['KERAS_BACKEND'] = "theano"
 import theano
-print "Theano Version: " + theano.__version__
+print("Theano Version: " + theano.__version__)
 
 import keras
-print "Keras Version: " + keras.__version__
+print("Keras Version: " + keras.__version__)
 from keras.layers import Input, Dense, Activation, Dropout, Flatten, Reshape, Permute, RepeatVector, ActivityRegularization, TimeDistributed, Lambda, SpatialDropout1D
 from keras.layers.convolutional import Conv1D, Conv2D, Conv2DTranspose, UpSampling2D, ZeroPadding2D
 from keras.layers.embeddings import Embedding
@@ -91,26 +91,26 @@ if WRITE_HISTORY:
 ###################################
 #  Load Dataset
 ###################################
-print "Loading Data..."
+print("Loading Data...")
 y_samples = np.load('samples.npy')
 y_lengths = np.load('lengths.npy')
 num_samples = y_samples.shape[0]
 num_songs = y_lengths.shape[0]
-print "Loaded " + str(num_samples) + " samples from " + str(num_songs) + " songs."
-print np.sum(y_lengths)
+print("Loaded " + str(num_samples) + " samples from " + str(num_songs) + " songs.")
+print(np.sum(y_lengths))
 assert(np.sum(y_lengths) == num_samples)
 
-print "Padding Songs..."
+print("Padding Songs...")
 x_shape = (num_songs * NUM_OFFSETS, 1)
 y_shape = (num_songs * NUM_OFFSETS, MAX_LENGTH) + y_samples.shape[1:]
 x_orig = np.expand_dims(np.arange(x_shape[0]), axis=-1)
 y_orig = np.zeros(y_shape, dtype=y_samples.dtype)
 cur_ix = 0
-for i in xrange(num_songs):
-	for ofs in xrange(NUM_OFFSETS):
+for i in range(num_songs):
+	for ofs in range(NUM_OFFSETS):
 		ix = i*NUM_OFFSETS + ofs
 		end_ix = cur_ix + y_lengths[i]
-		for j in xrange(MAX_LENGTH):
+		for j in range(MAX_LENGTH):
 			k = (j + ofs) % (end_ix - cur_ix)
 			y_orig[ix,j] = y_samples[cur_ix + k]
 	cur_ix = end_ix
@@ -144,33 +144,33 @@ midi.samples_to_midi(y_test_song[0], 'gt.mid', 16)
 #  Create Model
 ###################################
 if CONTINUE_TRAIN or PLAY_ONLY:
-	print "Loading Model..."
+	print("Loading Model...")
 	model = load_model('model.h5', custom_objects=custom_objects)
 else:
-	print "Building Model..."
+	print("Building Model...")
 
 	if USE_EMBEDDING:
 		x_in = Input(shape=x_shape[1:])
-		print (None,) + x_shape[1:]
+		print((None,) + x_shape[1:])
 		x = Embedding(x_train.shape[0], PARAM_SIZE, input_length=1)(x_in)
 		x = Flatten(name='pre_encoder')(x)
 	else:
 		x_in = Input(shape=y_shape[1:])
-		print (None,) + y_shape[1:]
+		print((None,) + y_shape[1:])
 		x = Reshape((y_shape[1], -1))(x_in)
-		print K.int_shape(x)
+		print(K.int_shape(x))
 		
 		x = TimeDistributed(Dense(2000, activation='relu'))(x)
-		print K.int_shape(x)
+		print(K.int_shape(x))
 		
 		x = TimeDistributed(Dense(200, activation='relu'))(x)
-		print K.int_shape(x)
+		print(K.int_shape(x))
 
 		x = Flatten()(x)
-		print K.int_shape(x)
+		print(K.int_shape(x))
 
 		x = Dense(1600, activation='relu')(x)
-		print K.int_shape(x)
+		print(K.int_shape(x))
 		
 		if USE_VAE:
 			z_mean = Dense(PARAM_SIZE)(x)
@@ -179,35 +179,35 @@ else:
 		else:
 			x = Dense(PARAM_SIZE)(x)
 			x = BatchNormalization(momentum=BN_M, name='pre_encoder')(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 	
 	x = Dense(1600, name='encoder')(x)
 	x = BatchNormalization(momentum=BN_M)(x)
 	x = Activation('relu')(x)
 	if DO_RATE > 0:
 		x = Dropout(DO_RATE)(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 
 	x = Dense(MAX_LENGTH * 200)(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 	x = Reshape((MAX_LENGTH, 200))(x)
 	x = TimeDistributed(BatchNormalization(momentum=BN_M))(x)
 	x = Activation('relu')(x)
 	if DO_RATE > 0:
 		x = Dropout(DO_RATE)(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 
 	x = TimeDistributed(Dense(2000))(x)
 	x = TimeDistributed(BatchNormalization(momentum=BN_M))(x)
 	x = Activation('relu')(x)
 	if DO_RATE > 0:
 		x = Dropout(DO_RATE)(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 
 	x = TimeDistributed(Dense(y_shape[2] * y_shape[3], activation='sigmoid'))(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 	x = Reshape((y_shape[1], y_shape[2], y_shape[3]))(x)
-	print K.int_shape(x)
+	print(K.int_shape(x))
 	
 	if USE_VAE:
 		model = Model(x_in, x)
@@ -221,7 +221,7 @@ else:
 ###################################
 #  Train
 ###################################
-print "Compiling SubModels..."
+print("Compiling SubModels...")
 func = K.function([model.get_layer('encoder').input, K.learning_phase()],
 				  [model.layers[-1].output])
 enc = Model(inputs=model.input, outputs=model.get_layer('pre_encoder').output)
@@ -230,7 +230,7 @@ rand_vecs = np.random.normal(0.0, 1.0, (NUM_RAND_SONGS, PARAM_SIZE))
 np.save('rand.npy', rand_vecs)
 
 def make_rand_songs(write_dir, rand_vecs):
-	for i in xrange(rand_vecs.shape[0]):
+	for i in range(rand_vecs.shape[0]):
 		x_rand = rand_vecs[i:i+1]
 		y_song = func([x_rand, 0])[0]
 		midi.samples_to_midi(y_song[0], write_dir + 'rand' + str(i) + '.mid', 16, 0.25)
@@ -247,8 +247,8 @@ def make_rand_songs_normalized(write_dir, rand_vecs):
 	u, s, v = np.linalg.svd(x_cov)
 	e = np.sqrt(s)
 
-	print "Means: ", x_mean[:6]
-	print "Evals: ", e[:6]
+	print("Means: ", x_mean[:6])
+	print("Evals: ", e[:6])
 	
 	np.save(write_dir + 'means.npy', x_mean)
 	np.save(write_dir + 'stds.npy', x_stds)
@@ -282,27 +282,27 @@ def make_rand_songs_normalized(write_dir, rand_vecs):
 	plt.savefig(write_dir + 'stds.png')
 
 if PLAY_ONLY:
-	print "Generating Songs..."
+	print("Generating Songs...")
 	make_rand_songs_normalized('', rand_vecs)
-	for i in xrange(20):
+	for i in range(20):
 		x_test_song = x_train[i:i+1]
 		y_song = model.predict(x_test_song, batch_size=BATCH_SIZE)[0]
 		midi.samples_to_midi(y_song, 'gt' + str(i) + '.mid', 16)
 	exit(0)
 		  
-print "Training..."
+print("Training...")
 save_config()
 train_loss = []
 ofs = 0
 
-for iter in xrange(NUM_EPOCHS):
+for iter in range(NUM_EPOCHS):
 	if USE_EMBEDDING:
 		history = model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=1)
 	else:
 		cur_ix = 0
-		for i in xrange(num_songs):
+		for i in range(num_songs):
 			end_ix = cur_ix + y_lengths[i]
-			for j in xrange(MAX_LENGTH):
+			for j in range(MAX_LENGTH):
 				k = (j + ofs) % (end_ix - cur_ix)
 				y_train[i,j] = y_samples[cur_ix + k]
 			cur_ix = end_ix
@@ -313,7 +313,7 @@ for iter in xrange(NUM_EPOCHS):
 
 	loss = history.history["loss"][-1]
 	train_loss.append(loss)
-	print "Train Loss: " + str(train_loss[-1])
+	print("Train Loss: " + str(train_loss[-1]))
 	
 	if WRITE_HISTORY:
 		plotScores(train_loss, 'History/Scores.png', True)
@@ -332,7 +332,7 @@ for iter in xrange(NUM_EPOCHS):
 			model.save('History/model.h5')
 		else:
 			model.save('model.h5')
-		print "Saved"
+		print("Saved")
 
 		if USE_EMBEDDING:
 			y_song = model.predict(x_test_song, batch_size=BATCH_SIZE)[0]
@@ -343,4 +343,4 @@ for iter in xrange(NUM_EPOCHS):
 
 		make_rand_songs_normalized(write_dir, rand_vecs)
 
-print "Done"
+print("Done")
