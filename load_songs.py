@@ -1,23 +1,24 @@
 import midi
 import os
+import traceback
 import util
 import numpy as np
 
 patterns = {}
-dirs = ["Music", "download", "rag", "pop", "misc"]
+dirs = ['samples/nes', 'samples/gb']
 all_samples = []
 all_lens = []
 print("Loading Songs...")
 for dir in dirs:
 	for root, subdirs, files in os.walk(dir):
-		for file in files:
-			path = root + "\\" + file
+		for f in files:
+			path = os.path.join(root, f)
 			if not (path.endswith('.mid') or path.endswith('.midi')):
 				continue
 			try:
 				samples = midi.midi_to_samples(path)
-			except:
-				print("ERROR ", path)
+			except Exception as e:
+				print("ERROR ", path, e, traceback.format_exc())
 				continue
 			if len(samples) < 8:
 				continue
@@ -25,6 +26,7 @@ for dir in dirs:
 			samples, lens = util.generate_add_centered_transpose(samples)
 			all_samples += samples
 			all_lens += lens
+			print('SUCCESS', f)
 	
 assert(sum(all_lens) == len(all_samples))
 print("Saving " + str(len(all_samples)) + " samples...")

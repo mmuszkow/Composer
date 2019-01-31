@@ -14,7 +14,7 @@ def transpose_range(samples):
 def generate_add_centered_transpose(samples):
 	num_notes = samples[0].shape[1]
 	min_note, max_note = transpose_range(samples)
-	s = num_notes/2 - (max_note + min_note)/2
+	s = int(num_notes/2 - (max_note + min_note)/2)
 	out_samples = samples
 	out_lens = [len(samples), len(samples)]
 	for i in range(len(samples)):
