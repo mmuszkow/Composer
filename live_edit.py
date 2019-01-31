@@ -104,7 +104,7 @@ def audio_callback(in_data, frame_count, time_info, status):
 	#Find and add any notes in this time window
 	cur_dt = note_dt
 	while note_time_dt < audio_time + frame_count:
-		measure_ix = note_time / note_h
+		measure_ix = int(note_time / note_h)
 		if measure_ix >= num_measures:
 			break
 		note_ix = note_time % note_h
@@ -193,7 +193,7 @@ y_lengths = np.load('lengths.npy')
 #Open a window
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((window_w, window_h))
+screen = pygame.display.set_mode((int(window_w), int(window_h)))
 notes_surface = screen.subsurface((notes_x, notes_y, notes_w, notes_h))
 pygame.display.set_caption('MusicEdit')
 font = pygame.font.SysFont("monospace", 15)
@@ -240,7 +240,7 @@ def update_mouse_move(mouse_pos):
 		y = (mouse_pos[1] - sliders_y)
 		if y >= 0 and y <= slider_h:
 			val = (float(y) / slider_h - 0.5) * (num_sigmas * 2)
-			cur_params[cur_slider_ix] = val
+			cur_params[int(cur_slider_ix)] = val
 			needs_update = True
 	elif mouse_pressed == 2:
 		x = (mouse_pos[0] - (controls_x + cur_control_ix*control_w))
@@ -280,12 +280,12 @@ def draw_sliders():
 			pygame.draw.line(screen, col, (cx_1, ly), (cx_2, ly))
 			
 		py = y + int((cur_params[i] / (num_sigmas * 2) + 0.5) * slider_h)
-		pygame.draw.circle(screen, slider_color, (cx, py), (slider_w - tick_pad)/2)
+		pygame.draw.circle(screen, slider_color, (int(cx), int(py)), int((slider_w - tick_pad)/2))
 
 def notes_to_img(notes):
-	output = np.full((3, notes_h, notes_w), 64, dtype=np.uint8)
-
-	for i in range(notes_rows):
+	output = np.full((3, int(notes_h), int(notes_w)), 64, dtype=np.uint8)
+    
+	for i in range(int(notes_rows)):
 		for j in range(notes_cols):
 			x = note_pad + j*(note_w + note_pad*2)
 			y = note_pad + i*(note_h + note_pad*2)

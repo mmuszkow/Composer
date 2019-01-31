@@ -144,7 +144,7 @@ midi.samples_to_midi(y_test_song[0], 'gt.mid', 16)
 ###################################
 if CONTINUE_TRAIN or PLAY_ONLY:
 	print("Loading Model...")
-	model = load_model('model.h5', custom_objects=custom_objects)
+	model = load_model('model.h5')
 else:
 	print("Building Model...")
 
@@ -320,7 +320,7 @@ for iter in range(NUM_EPOCHS):
 		plotScores(train_loss, 'Scores.png', True)
 	
 	i = iter + 1
-	if i in [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450] or (i % 100 == 0):
+	if i in [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450] or (i % 100 == 0) or i == NUM_EPOCHS:
 		write_dir = ''
 		if WRITE_HISTORY:
 			#Create folder to save models into
