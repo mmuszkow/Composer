@@ -372,7 +372,7 @@ while running:
                 audio_pause = True
                 audio_reset = True
                 midi.samples_to_midi(cur_notes, 'live.mid', 16, note_thresh)
-                save_audio = ''
+                save_audio = b''
                 while True:
                     save_audio += audio_callback(None, 1024, None, None)[0]
                     if audio_time == 0:
