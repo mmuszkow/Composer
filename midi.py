@@ -1,28 +1,13 @@
 from mido import MidiFile, MidiTrack, Message
 import numpy as np
 import os
+import util
 
 num_notes = 96
 samples_per_measure = 96
 
-def filter_tracks(tracks):
-    res = []
-    for track in tracks:
-        #instruments = [msg.program for msg in track if msg.type == 'program_change']
-        tname = track.name.lower()
-        if 'piano' in tname or 'wave' in tname or 'sawtooth' in tname or 'melody' in tname or 'square' in tname:
-            res.append(track)
-        elif not 'percussion' in tname:
-            note_on_msgs = [msg for msg in track if msg.type == 'note_on']
-            unique_notes = set([msg.note for msg in note_on_msgs])
-            if len(note_on_msgs) > 500 and len(unique_notes) > 6:
-                res.append(track)
-    return res
-
-
 def midi_to_samples(fname):
     has_time_sig = False
-    flag_warning = False
     mid = MidiFile(fname)
 
     ticks_per_beat = mid.ticks_per_beat
@@ -33,27 +18,29 @@ def midi_to_samples(fname):
             if msg.type == 'time_signature':
                 new_tpm = msg.numerator * ticks_per_beat * 4 / msg.denominator
                 if has_time_sig and new_tpm != ticks_per_measure:
-                    flag_warning = True
+                    raise NotImplementedError('Multiple time signatures not supported')
                 ticks_per_measure = new_tpm
                 has_time_sig = True
-    if flag_warning:
-        print('Ignoring', fname, 'as multiple time signatures detected')
-        return []
-    
-    filtered = filter_tracks(mid.tracks)
-    if len(filtered) == 0:
-        return []
-    
+
     all_notes = {}
-    for track in filtered:
+    for track in mid.tracks:
         abs_time = 0
         for msg in track:
             abs_time += msg.time
+
+            # programs 0x70-0x7F are percurssion and sound effects
+            # we ignore them
+            if msg.type == 'program_change' and msg.program >= 0x70:
+                break
+
             if msg.type == 'note_on':
                 if msg.velocity == 0:
                     continue
                 note = msg.note - (128 - num_notes)/2
-                assert(note >= 0 and note < num_notes)
+                if note < 0 or note >= num_notes:
+                    print('Ignoring', fname, 'note is outside 0-%d range' % (num_notes - 1))
+                    return []
+                    
                 if note not in all_notes:
                     all_notes[note] = []
                 else:
@@ -73,6 +60,7 @@ def midi_to_samples(fname):
     for note in all_notes:
         for start, end in all_notes[note]:
             sample_ix = int(start / samples_per_measure)
+            assert(sample_ix < 1024*1024)
             while len(samples) <= sample_ix:
                 samples.append(np.zeros((samples_per_measure, num_notes), dtype=np.uint8))
             sample = samples[sample_ix]

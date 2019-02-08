@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+from PIL import Image, ImageDraw
 
 def transpose_range(samples):
 	merged_sample = np.zeros_like(samples[0])
@@ -49,6 +50,26 @@ def samples_to_pics(dir, samples, thresh=None):
 	if not os.path.exists(dir): os.makedirs(dir)
 	for i in range(samples.shape[0]):
 		sample_to_pic(dir + '/s' + str(i) + '.png', samples[i], thresh)
+
+
+def samples_to_png(fname, mat): # mat is segs x 96 x 96 numpy uint8_t mat
+    segs = len(mat)
+    if segs > 0:
+        print('samples_to_png, segments =', segs)
+        length = len(mat[0]) # both are 96
+        notes = len(mat[0][0])
+
+        im = Image.new('RGB', (segs*length, notes))
+        draw = ImageDraw.Draw(im)
+        for seg in range(segs):
+            for t in range(length):
+                for note in range(notes):
+                    if mat[seg][t][note] > 0:
+                        draw.point([seg*length+t, note], fill=(255,255,255))
+        del draw
+        im.save(fname)
+    else:
+        print('samples_to_png, empty matrix received, something went wrong')
 
 def pad_songs(y, y_lens, max_len):
 	y_shape = (y_lens.shape[0], max_len) + y.shape[1:]
