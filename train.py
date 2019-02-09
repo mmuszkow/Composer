@@ -6,9 +6,9 @@ import cv2
 import util
 import midi
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 1
 LR = 0.001
-CONTINUE_TRAIN = False
+CONTINUE_TRAIN = True
 PLAY_ONLY = False
 USE_EMBEDDING = False
 USE_VAE = False
@@ -84,11 +84,10 @@ np.random.seed(0)
 random.seed(0)
 
 # create directories
-if WRITE_HISTORY:
-    if not os.path.exists('history'):
-        os.makedirs('history')
 if not os.path.exists('output'):
     os.makedirs('output')
+if WRITE_HISTORY and not os.path.exists('output/history'):
+    os.makedirs('output/history')
 
 ###################################
 #  Load Dataset
@@ -149,7 +148,7 @@ midi.samples_to_midi(y_test_song[0], 'gt.mid', 16)
 ###################################
 if CONTINUE_TRAIN or PLAY_ONLY:
     print("Loading Model...")
-    model = load_model('input/model.h5')
+    model = load_model('output/model.h5')
 else:
     print("Building Model...")
 
@@ -239,7 +238,11 @@ def make_rand_songs(write_dir, rand_vecs):
         y_song = func([x_rand, 0])[0]
         midi.samples_to_midi(y_song[0], write_dir + 'rand' + str(i) + '.mid', 16, 0.25)
 
-def make_rand_songs_normalized(write_dir, rand_vecs):
+# means
+# stddevs
+# evals
+# evecs
+def make_msee(write_dir):
     if USE_EMBEDDING:
         x_enc = np.squeeze(enc.predict(x_orig))
     else:
@@ -258,6 +261,10 @@ def make_rand_songs_normalized(write_dir, rand_vecs):
     np.save(write_dir + 'stds.npy', x_stds)
     np.save(write_dir + 'evals.npy', e)
     np.save(write_dir + 'evecs.npy', v)
+    return x_mean, x_stds, e, v
+
+def make_rand_songs_normalized(write_dir, rand_vecs):
+    x_mean, x_stds, e, v = make_msee(write_dir)
 
     x_vecs = x_mean + np.dot(rand_vecs * e, v)
     make_rand_songs(write_dir, x_vecs)
@@ -320,7 +327,7 @@ for iter in range(NUM_EPOCHS):
     print("Train Loss: " + str(train_loss[-1]))
     
     if WRITE_HISTORY:
-        plotScores(train_loss, 'history/Scores.png', True)
+        plotScores(train_loss, 'output/history/Scores.png', True)
     else:
         plotScores(train_loss, 'output/Scores.png', True)
     
@@ -329,13 +336,17 @@ for iter in range(NUM_EPOCHS):
         write_dir = 'output/'
         if WRITE_HISTORY:
             #Create folder to save models into
-            write_dir = 'history/e' + str(i)
+            write_dir = 'output/history/e' + str(i)
             if not os.path.exists(write_dir):
                 os.makedirs(write_dir)
             write_dir += '/'
-            model.save('history/model.h5')
-        else:
+            model.save('output/history/model.h5')
+        
+        # Save output on last epoch
+        if i == NUM_EPOCHS:
             model.save('output/model.h5')
+            make_msee('output/')
+
         print("Saved")
 
         if USE_EMBEDDING:
@@ -348,3 +359,4 @@ for iter in range(NUM_EPOCHS):
         make_rand_songs_normalized(write_dir, rand_vecs)
 
 print("Done")
+

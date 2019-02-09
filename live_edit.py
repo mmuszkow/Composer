@@ -8,8 +8,6 @@ import wave
 
 #User constants
 device = "cpu"
-dir_name = 'History/'
-sub_dir_name = 'e30/'
 sample_rate = 48000
 note_dt = 2000        #Num Samples
 note_duration = 20000 #Num Samples
@@ -175,20 +173,20 @@ from keras import backend as K
 K.set_image_data_format('channels_first')
 
 print("Loading Encoder...")
-model = load_model(dir_name + 'model.h5')
+model = load_model('output/model.h5')
 enc = K.function([model.get_layer('encoder').input, K.learning_phase()],
                  [model.layers[-1].output])
 enc_model = Model(inputs=model.input, outputs=model.get_layer('pre_encoder').output)
 
 print("Loading Statistics...")
-means = np.load(dir_name + sub_dir_name + 'means.npy')
-evals = np.load(dir_name + sub_dir_name + 'evals.npy')
-evecs = np.load(dir_name + sub_dir_name + 'evecs.npy')
-stds = np.load(dir_name + sub_dir_name + 'stds.npy')
+means = np.load('output/means.npy')
+evals = np.load('output/evals.npy')
+evecs = np.load('output/evecs.npy')
+stds = np.load('output/stds.npy')
 
 print("Loading Songs...")
-y_samples = np.load('samples.npy')
-y_lengths = np.load('lengths.npy')
+y_samples = np.load('input/samples.npy')
+y_lengths = np.load('input/lengths.npy')
 
 #Open a window
 pygame_sdl2.init()
@@ -371,13 +369,13 @@ while running:
             if event.key == pygame_sdl2.K_g:
                 audio_pause = True
                 audio_reset = True
-                midi.samples_to_midi(cur_notes, 'live.mid', 16, note_thresh)
+                midi.samples_to_midi(cur_notes, 'output/live.mid', 16, note_thresh)
                 save_audio = b''
                 while True:
                     save_audio += audio_callback(None, 1024, None, None)[0]
                     if audio_time == 0:
                         break
-                wave_output = wave.open('live.wav', 'w')
+                wave_output = wave.open('output/live.wav', 'w')
                 wave_output.setparams((1, 2, sample_rate, 0, 'NONE', 'not compressed'))
                 wave_output.writeframes(save_audio)
                 wave_output.close()
